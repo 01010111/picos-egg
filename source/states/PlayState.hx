@@ -1,5 +1,7 @@
 package states;
 
+import util.Dolly;
+import ui.Selection;
 import zero.flixel.utilities.OverlapUtil;
 import util.PickupUtils.data;
 import objects.Pickup;
@@ -47,14 +49,17 @@ class PlayState extends State
 			tag1: 'actor',
 			tag2: 'pickup',
 			separate: false,
-			callback: (a, p) -> (cast a:Actor).pick_up(cast p),
+			callback: (a, p) -> (cast a:Actor).pick_up_collide(cast p),
 		});
 	}
 
 	function init_objects() {
+		add(new Dolly(FlxG.width/2, FlxG.height/2));
+		add(new Selection());
 		add(objects);
-		new Actor(32, 32, {solid: true,playable: true,tags: ['player'], health: 10, move_amt: 32, spriteset: 5.get_random().floor()});
-		new Actor(64, 64, {solid: true,playable: true,tags: ['player'], health: 10, move_amt: 32, spriteset: 5.get_random().floor()});
+		new Actor(32, 32, { solid: true, tags: ['player'], health: 10, move_amt: 32, spriteset: 5.get_random().floor()});
+		new Actor(64, 64, { solid: true, tags: ['player'], health: 10, move_amt: 32, spriteset: 5.get_random().floor()});
+		new Actor(224, 64, { solid: true, tags: ['enemy'], health: 10, move_amt: 32, spriteset: 14 });
 		new Pickup(128, 128, data[SHOTGUN]);
 	}
 

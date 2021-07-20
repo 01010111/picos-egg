@@ -2,11 +2,11 @@ package objects;
 
 class Pickup extends GameObject {
 
-	public var state:PickupState;
+	public var state(default, set):PickupState;
 	public var rotation(never, set):Float;
-	var data:PickupData;
-	var tag:String;
-
+	public var last_held:LastHeld = NONE;
+	public var data:PickupData;
+	
 	public function new(x:Float, y:Float, data:PickupData) {
 		super(x, y, { solid: false, tags: ['pickup'] });
 		loadGraphic(Images.pickups__png, true, 32, 32);
@@ -14,6 +14,7 @@ class Pickup extends GameObject {
 		this.make_and_center_hitbox(2, 2);
 		this.data = data;
 		state = FREE;
+		elasticity = 0.5;
 	}
 
 	override function get_sy():Float {
@@ -27,12 +28,38 @@ class Pickup extends GameObject {
 		return v;
 	}
 
+	function set_state(s:PickupState) {
+		switch s {
+			case FREE:drag.set(PICKUP_DRAG, PICKUP_DRAG);
+			case FLYING:drag.set();
+			case HELD:
+		}
+		return state = s;
+	}
+
+	override function update(elapsed:Float) {
+		super.update(elapsed);
+		switch state {
+			case FREE:
+			case FLYING: 
+				if (wasTouching > 0) state = FREE;
+				angle += velocity.x < 0 ? -30 : 30;
+			case HELD:
+		}
+	}
+
 }
 
 enum PickupState {
 	FREE;
 	FLYING;
 	HELD;
+}
+
+enum LastHeld {
+	PLAYER;
+	ENEMY;
+	NONE;
 }
 
 typedef PickupData = {

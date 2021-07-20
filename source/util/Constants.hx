@@ -2,3 +2,6 @@ package util;
 
 var ACTOR_SPEED = 120;
 var TILESIZE = 15;
+var AIM_THRESHOLD = 16;
+var THROW_SPEED = 500;
+var PICKUP_DRAG = 1200;

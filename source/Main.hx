@@ -30,6 +30,9 @@ class Main extends Sprite
 		FlxG.game.stage.quality = StageQuality.LOW;
 		FlxG.resizeWindow(FlxG.stage.stageWidth, FlxG.stage.stageHeight);
 		#end
+		#if html5
+		js.Browser.document.addEventListener('contextmenu', (e) -> e.preventDefault());
+		#end
 	}
 
 	function preupdate(?dt:Dynamic) {

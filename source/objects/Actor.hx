@@ -1,5 +1,8 @@
 package objects;
 
+import util.Dolly;
+import flixel.FlxObject;
+import ui.Selection;
 import zero.utilities.Timer;
 import util.Constants.ACTOR_SPEED;
 import zero.utilities.Vec2;
@@ -15,9 +18,14 @@ class Actor extends GameObject {
 	var available_move:Float = 0;
 	var available_attack:Bool = true;
 	var available_special:Bool = true;
+	var target:FlxObject;
 
 	function set_turn(v) {
 		immovable = !v;
+		target = null;
+		Dolly.i.reset_targets();
+		Dolly.i.add_target(this);
+		Selection.i.hide();
 		return turn = v;
 	}
 
@@ -55,7 +63,8 @@ class Actor extends GameObject {
 
 	function hold() {
 		if (held == null) return;
-		held.x = x + 4;
+		trace(ID);
+		held.x = x + 4.5 + (held.scale.x.sign_of() < 0 ? -6.5 : 6.5);
 		held.y = y + 2;
 	}
 
@@ -88,12 +97,44 @@ class Actor extends GameObject {
 	function aim() {
 		if (held == null) return;
 		var mp = FlxG.mouse.getPositionInCameraView(FlxG.camera).to_vector(true);
+		
+		// rotate held
 		var tp = getMidpoint().to_vector(true);
-		var d = mp - tp;
-		held.rotation = d.angle;
+		var diff = mp - tp;
+		held.rotation = diff.angle;
+
+		// find targets
+		var targets = FlxTags.get_objects('gameobject', true);
+		var nearest = targets[0];
+		var get_distance = (t:FlxObject) -> {
+			var v = Vec2.get(t.x + t.width/2, t.y + t.height/2);
+			var out = mp.distance(v);
+			v.put();
+			return out;
+		}
+		var distance = get_distance(nearest);
+
+		for (target in targets) {
+			var temp_d = get_distance(target);
+			if (temp_d < distance) {
+				nearest = target;
+				distance = temp_d;
+			}
+		}
+
+		if (distance <= AIM_THRESHOLD && nearest != this && nearest != held) {
+			target = nearest;
+			Selection.i.show(target.x + target.width/2, target.y + target.height/2);
+		}
+		else {
+			target = null;
+			Selection.i.hide();
+		}
+
+		// recycle!
 		mp.put();
 		tp.put();
-		d.put();
+		diff.put();
 	}
 	
 	function fire_held() {
@@ -102,6 +143,20 @@ class Actor extends GameObject {
 	
 	function throw_held() {
 		if (held == null) return;
+		var v = target == null ? 
+			Vec2.get(FlxG.mouse.getPositionInCameraView().x, FlxG.mouse.getPositionInCameraView().y) :
+			Vec2.get(target.x + target.width/2, target.y + target.height/2);
+		var p = Vec2.get(x + width/2, y + height/2);
+		var d = v - p;
+		d.length = THROW_SPEED;
+
+		held.state = FLYING;
+		held.velocity.set(d.x, d.y);
+		held = null;
+
+		v.put();
+		p.put();
+		d.put();
 	}
 
 	function switch_character() {
@@ -125,11 +180,27 @@ class Actor extends GameObject {
 		v.put();
 	}
 
-	public function pick_up(pickup:Pickup) {
-		trace('picking up');
-		if (held != null || pickup.state != FREE) return;
-		held = pickup;
-		pickup.state = HELD;
+	public function pick_up_collide(pickup:Pickup) {
+		var is_player = this.has_tag('player');
+		switch pickup.state {
+			case FREE: get_pickup(pickup);
+			case FLYING: is_player ? get_pickup(pickup) : pickup_hit(pickup);
+			case HELD:return;
+		}
+	}
+	
+	function get_pickup(p:Pickup) {
+		// set velocity, set state, set last_held
+		if (held != null) return;
+		p.velocity.set();
+		p.state = HELD;
+		p.last_held = this.has_tag('player') ? PLAYER : ENEMY;
+		held = p;
+	}
+
+	function pickup_hit(p:Pickup) {
+		FlxObject.separate(this, p);
+		hurt(p.data.power);
 	}
 
 }
@@ -137,7 +208,6 @@ class Actor extends GameObject {
 typedef ActorOptions = {
 	> GameObjectOptions,
 	spriteset:Int,
-	playable:Bool,
 	move_amt:Float,
 	health:Float,
 }
