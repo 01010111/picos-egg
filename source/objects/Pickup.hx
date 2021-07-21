@@ -7,6 +7,8 @@ class Pickup extends GameObject {
 	public var last_held:LastHeld = NONE;
 	public var data:PickupData;
 	
+	var angle_target:Float = 0;
+	
 	public function new(x:Float, y:Float, data:PickupData) {
 		super(x, y, { solid: false, tags: ['pickup', data.type.string().toLowerCase()] });
 		loadGraphic(Images.pickups__png, true, 32, 32);
@@ -24,7 +26,7 @@ class Pickup extends GameObject {
 
 	function set_rotation(v:Float) {
 		scale.x = v.get_relative_degree() > 90 && v.get_relative_degree() < 270 ? -1 : 1;
-		angle = v.get_relative_degree() > 90 && v.get_relative_degree() < 270 ? v + 180 : v;
+		angle_target = v.get_relative_degree() > 90 && v.get_relative_degree() < 270 ? v + 180 : v;
 		return v;
 	}
 
@@ -45,6 +47,8 @@ class Pickup extends GameObject {
 				if (wasTouching > 0) state = FREE;
 				angle += velocity.x < 0 ? -30 : 30;
 			case HELD:
+				angle_target = angle_target.translate_to_nearest_angle(angle);
+				angle += (angle_target - angle) * 0.25;
 		}
 	}
 

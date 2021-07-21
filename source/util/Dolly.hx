@@ -21,8 +21,10 @@ class Dolly extends FlxObject {
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 		var shift = FlxG.keys.pressed.SHIFT;
-		var xx = shift ? FlxG.mouse.x - FlxG.camera.scroll.x : 0;
-		var yy = shift ? FlxG.mouse.y - FlxG.camera.scroll.y : 0;
+		var mp = FlxG.mouse.getWorldPosition().to_vector(true);
+		var xx = shift ? mp.x : 0;
+		var yy = shift ? mp.y : 0;
+		mp.put();
 		for (target in targets) {
 			xx += target.x;
 			yy += target.y;

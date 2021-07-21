@@ -84,19 +84,16 @@ class MapUtils {
 	}
 
 	public function can_see(sx:Float, sy:Float, ex:Float, ey:Float) {
-		trace('checking', sx, sy, ex, ey);
 		var out = line_of_sight(
 			(sx/TILESIZE).floor(),
 			(sy/TILESIZE).floor(),
 			(ex/TILESIZE).floor(),
 			(ey/TILESIZE).floor()
 		);
-		trace('los', out);
 		return out;
 	}
 
 	public function object_heatmap(filter:String) {
-		trace('generating heatmap...');
 		heatmap.fill(-1);
 		for (j in 0...map.length) for (i in 0...map[j].length) {
 			if (map[j][i] > 0) heatmap[j][i] = 999;
@@ -128,9 +125,7 @@ class MapUtils {
 				p.put();
 			}
 			i++;
-			trace(i, points.length);
 		}
-		trace(heatmap);
 		#if debug draw_debug(); #end
 	}
 

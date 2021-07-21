@@ -62,6 +62,7 @@ class PlayState extends State
 		new Actor(64, 64, { solid: true, tags: ['player'], health: 10, move_amt: 32, spriteset: 5.get_random().floor()});
 		new Actor(224, 64, { solid: true, tags: ['enemy'], health: 10, move_amt: 32, spriteset: 14 });
 		new Pickup(320, 64, data[SHOTGUN]);
+		new Pickup(32, 80, data[RIFLE]);
 	}
 
 	override function update(e:Float) {

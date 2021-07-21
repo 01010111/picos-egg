@@ -49,7 +49,7 @@ var data:Map<PickupName, PickupData> = [
 		ammo: 16,
 		timing: 0,
 		falloff: Ease.quadIn,
-		max_range: 128,
+		max_range: 256,
 		power: 4,
 		projectiles: 1,
 		type: WEAPON
@@ -59,7 +59,7 @@ var data:Map<PickupName, PickupData> = [
 		ammo: 8,
 		timing: 0,
 		falloff: Ease.quadOut,
-		max_range: 64,
+		max_range: 128,
 		power: 2,
 		projectiles: 8,
 		type: WEAPON
@@ -69,7 +69,7 @@ var data:Map<PickupName, PickupData> = [
 		ammo: 10,
 		timing: 0.1,
 		falloff: Ease.quintIn,
-		max_range: 192,
+		max_range: 384,
 		power: 3,
 		projectiles: 4,
 		type: WEAPON
