@@ -1,5 +1,6 @@
 package objects;
 
+import flixel.FlxSprite;
 import util.MapUtils;
 import util.Dolly;
 import flixel.FlxObject;
@@ -13,22 +14,24 @@ class Actor extends GameObject {
 	
 	var options:ActorOptions;
 	public var turn(default, set):Bool;
-	public var held:Pickup;
+	public var held(default, set):Pickup;
 	public var available(default, set):Bool;
 
 	var available_move:Float = 0;
 	var available_attack:Bool = true;
 	var available_special:Bool = true;
 	var target:FlxObject;
+	var wait:Bool = false;
+	var ai_state(default, set):AIState;
 
 	function set_turn(v) {
 		immovable = !v;
+		wait = !v;
 		target = null;
 		velocity.set();
 		Dolly.i.reset_targets();
 		Dolly.i.add_target(this);
 		Selection.i.hide();
-		MapUtils.i.object_heatmap((held != null ? 'player' : 'weapon'));
 		if (!this.has_tag('player')) begin_ai();
 		available_move = options.move_amt;
 		return turn = v;
@@ -38,6 +41,28 @@ class Actor extends GameObject {
 		if (v) available_move = options.move_amt;
 		available_attack = available_special = v;
 		return available = v;
+	}
+
+	function set_held(v) {
+		return held = v;
+	}
+
+	function set_ai_state(v:AIState) {
+		trace(v.string());
+		velocity.set();
+		switch v {
+			case CHASE:
+				MapUtils.i.object_heatmap('player');
+			case ESCAPE:
+				target = null;
+				MapUtils.i.object_heatmap('player');
+			case GET_WEAPON:
+				target = null;
+				MapUtils.i.object_heatmap('weapon');
+			case WAIT:
+			case ATTACK:
+		}
+		return ai_state = v;
 	}
 
 	public function new(x:Float, y:Float, options:ActorOptions) {
@@ -59,7 +84,7 @@ class Actor extends GameObject {
 		animations();
 		hold();
 		if (this.has_tag('player') && turn) player_controls();
-		else if (turn) move();
+		else if (turn) ai();
 	}
 
 	function animations() {
@@ -80,6 +105,7 @@ class Actor extends GameObject {
 	
 	function player_movement() {
 		velocity.set();
+		if (wait) return;
 		if (available_move <= 0) return;
 		var v = Vec2.get(0, 0);
 		if (FlxG.keys.pressed.W) v.y -= 1;
@@ -92,6 +118,7 @@ class Actor extends GameObject {
 	}
 
 	function player_actions() {
+		if (wait) return;
 		aim();
 		if (FlxG.mouse.justPressed) fire_held();
 		if (FlxG.mouse.justPressedRight) throw_held();
@@ -101,7 +128,8 @@ class Actor extends GameObject {
 
 	function aim() {
 		if (held == null) return;
-		var mp = FlxG.mouse.getPositionInCameraView(FlxG.camera).to_vector(true);
+		var mp = FlxG.mouse.getWorldPosition().to_vector(true);
+		trace(mp);
 		
 		// rotate held
 		var tp = getMidpoint().to_vector(true);
@@ -144,6 +172,7 @@ class Actor extends GameObject {
 	
 	function fire_held() {
 		if (held == null) return;
+		if (target != null) (cast target:FlxSprite).scale.set(0.5, 0.5);
 	}
 	
 	function throw_held() {
@@ -165,6 +194,7 @@ class Actor extends GameObject {
 	}
 
 	function switch_character() {
+		// TODO - players AND enemies
 		var players = FlxTags.get_objects('actor', true);
 		if (players.length < 2) return;
 		var idx = players.indexOf(this);
@@ -201,7 +231,7 @@ class Actor extends GameObject {
 		p.velocity.set();
 		p.state = HELD;
 		p.last_held = is_player ? PLAYER : ENEMY;
-		if (!is_player) MapUtils.i.object_heatmap('player');
+		if (!is_player) ai_state = CHASE;
 		held = p;
 	}
 
@@ -211,18 +241,30 @@ class Actor extends GameObject {
 	}
 
 	function begin_ai() {
-		
+		if (held == null) {
+			if ('weapon'.get_objects(true).length == 0) ai_state = ESCAPE;
+			else ai_state = GET_WEAPON;
+		}
+		else ai_state = CHASE;
 	}
 
-	function move() {
-		velocity.set();
-		if (available_move <= 0) return;
-		if (held != null && find_players()) {
-			trace('found player');
-			available_move = 0;
-			return;
+	function ai() {
+		switch ai_state {
+			case CHASE:
+				ai_move();
+				find_players();
+			case ESCAPE: ai_move();
+			case GET_WEAPON: ai_move();
+			case WAIT:
+			case ATTACK: attempt_shot();
 		}
-		var t = MapUtils.i.get_heatmap_pos(x + width/2, y + height/2, ASCENDING);
+		aim_at_target();
+	}
+
+	function ai_move() {
+		velocity.set();
+		if (available_move <= 0) ai_state = ATTACK;
+		var t = MapUtils.i.get_heatmap_pos(x + width/2, y + height/2, (ai_state == ESCAPE ? DESCENDING : ASCENDING));
 		var p = Vec2.get(x + width/2, y + height/2);
 		var d = t - p;
 		d.length = ACTOR_SPEED;
@@ -233,19 +275,70 @@ class Actor extends GameObject {
 	}
 
 	function find_players() {
+		if (held == null) {
+			begin_ai();
+			return;
+		}
 		var players = 'player'.get_objects(true);
+		players.sort((p1, p2) -> {
+			var p1p = p1.getMidpoint().to_vector(true);
+			var p2p = p2.getMidpoint().to_vector(true);
+			var myp = getMidpoint().to_vector(true);
+			var d1 = myp.distance(p1p);
+			var d2 = myp.distance(p2p);
+			p1p.put();
+			p2p.put();
+			myp.put();
+			return d1 < d2 ? -1 : 1;
+		});
 		for (player in players) {
 			var p1 = getMidpoint().to_vector(true);
 			var p2 = player.getMidpoint().to_vector(true);
-			trace(p1, p2, p1.distance(p2), MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y));
-			if (
-				(held == null || p1.distance(p2) < held.data.max_range/2) &&
-				MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y)
-			) return true;
+			var in_range = p1.distance(p2) < held.data.max_range/2;
+			var can_see = MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y);
+			trace('wange', p1.distance(p2), held.data.max_range);
+			//trace('player info',p1, p2, p1.distance(p2), MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y));
+			if (can_see) target = player;
+			if (in_range) ai_state = ATTACK;
 			p1.put();
 			p2.put();
 		}
-		return false;
+	}
+
+	function attempt_shot() {
+		if (target == null) {
+			ai_state = WAIT;
+			switch_character();
+			return;
+		}
+		var p1 = getMidpoint().to_vector(true);
+		var p2 = target.getMidpoint().to_vector(true);
+		var in_range = p1.distance(p2) < held.data.max_range;
+		p1.put();
+		p2.put();
+		if (!in_range) {
+			ai_state = WAIT;
+			switch_character();
+			return;
+		}
+		ai_state = WAIT;
+		Timer.get(0.5, fire_held);
+		Timer.get(2, switch_character);
+	}
+
+	function aim_at_target() {
+		if (held == null) return;
+		var aim_target = 0.0;
+		if (target != null) {
+			var p1 = getMidpoint().to_vector(true);
+			var p2 = target.getMidpoint().to_vector(true);
+			var d = p2 - p1;
+			aim_target = d.angle;
+			p1.put();
+			p2.put();
+			d.put();
+		}
+		held.rotation = aim_target;
 	}
 
 }
@@ -255,4 +348,12 @@ typedef ActorOptions = {
 	spriteset:Int,
 	move_amt:Float,
 	health:Float,
+}
+
+enum AIState {
+	CHASE;
+	ESCAPE;
+	GET_WEAPON;
+	WAIT;
+	ATTACK;
 }
