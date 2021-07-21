@@ -21,7 +21,8 @@ var data:Map<PickupName, PickupData> = [
 		falloff: Ease.linear,
 		max_range: 0,
 		power: 0,
-		projectiles: 0
+		projectiles: 0,
+		type: THROWABLE,
 	},
 	DODGEBALL => {
 		sprite: 1,
@@ -30,7 +31,8 @@ var data:Map<PickupName, PickupData> = [
 		falloff: Ease.linear,
 		max_range: 0,
 		power: 1,
-		projectiles: 0
+		projectiles: 0,
+		type: THROWABLE,
 	},
 	GRENADE => {
 		sprite: 2,
@@ -39,7 +41,8 @@ var data:Map<PickupName, PickupData> = [
 		falloff: Ease.linear,
 		max_range: 0,
 		power: 12,
-		projectiles: 0
+		projectiles: 0,
+		type: THROWABLE,
 	},
 	PISTOL => {
 		sprite: 3,
@@ -48,7 +51,8 @@ var data:Map<PickupName, PickupData> = [
 		falloff: Ease.quadIn,
 		max_range: 128,
 		power: 4,
-		projectiles: 1
+		projectiles: 1,
+		type: WEAPON
 	},
 	SHOTGUN => {
 		sprite: 4,
@@ -57,7 +61,8 @@ var data:Map<PickupName, PickupData> = [
 		falloff: Ease.quadOut,
 		max_range: 64,
 		power: 2,
-		projectiles: 8
+		projectiles: 8,
+		type: WEAPON
 	},
 	RIFLE => {
 		sprite: 5,
@@ -66,7 +71,8 @@ var data:Map<PickupName, PickupData> = [
 		falloff: Ease.quintIn,
 		max_range: 192,
 		power: 3,
-		projectiles: 4
+		projectiles: 4,
+		type: WEAPON
 	},
 	BAT => {
 		sprite: 6,
@@ -75,6 +81,7 @@ var data:Map<PickupName, PickupData> = [
 		falloff: Ease.linear,
 		max_range: 0,
 		power: 4,
-		projectiles: 0
+		projectiles: 0,
+		type: THROWABLE,
 	}
 ];

@@ -1,5 +1,6 @@
 package objects;
 
+import util.MapUtils;
 import util.Dolly;
 import flixel.FlxObject;
 import ui.Selection;
@@ -23,9 +24,13 @@ class Actor extends GameObject {
 	function set_turn(v) {
 		immovable = !v;
 		target = null;
+		velocity.set();
 		Dolly.i.reset_targets();
 		Dolly.i.add_target(this);
 		Selection.i.hide();
+		MapUtils.i.object_heatmap((held != null ? 'player' : 'weapon'));
+		if (!this.has_tag('player')) begin_ai();
+		available_move = options.move_amt;
 		return turn = v;
 	}
 
@@ -54,6 +59,7 @@ class Actor extends GameObject {
 		animations();
 		hold();
 		if (this.has_tag('player') && turn) player_controls();
+		else if (turn) move();
 	}
 
 	function animations() {
@@ -63,7 +69,6 @@ class Actor extends GameObject {
 
 	function hold() {
 		if (held == null) return;
-		trace(ID);
 		held.x = x + 4.5 + (held.scale.x.sign_of() < 0 ? -6.5 : 6.5);
 		held.y = y + 2;
 	}
@@ -160,7 +165,7 @@ class Actor extends GameObject {
 	}
 
 	function switch_character() {
-		var players = FlxTags.get_objects('player', true);
+		var players = FlxTags.get_objects('actor', true);
 		if (players.length < 2) return;
 		var idx = players.indexOf(this);
 		var next:Actor = cast players[++idx % players.length];
@@ -192,15 +197,55 @@ class Actor extends GameObject {
 	function get_pickup(p:Pickup) {
 		// set velocity, set state, set last_held
 		if (held != null) return;
+		var is_player = this.has_tag('player');
 		p.velocity.set();
 		p.state = HELD;
-		p.last_held = this.has_tag('player') ? PLAYER : ENEMY;
+		p.last_held = is_player ? PLAYER : ENEMY;
+		if (!is_player) MapUtils.i.object_heatmap('player');
 		held = p;
 	}
 
 	function pickup_hit(p:Pickup) {
 		FlxObject.separate(this, p);
 		hurt(p.data.power);
+	}
+
+	function begin_ai() {
+		
+	}
+
+	function move() {
+		velocity.set();
+		if (available_move <= 0) return;
+		if (held != null && find_players()) {
+			trace('found player');
+			available_move = 0;
+			return;
+		}
+		var t = MapUtils.i.get_heatmap_pos(x + width/2, y + height/2, ASCENDING);
+		var p = Vec2.get(x + width/2, y + height/2);
+		var d = t - p;
+		d.length = ACTOR_SPEED;
+		velocity.set(d.x, d.y);
+		t.put();
+		p.put();
+		d.put();
+	}
+
+	function find_players() {
+		var players = 'player'.get_objects(true);
+		for (player in players) {
+			var p1 = getMidpoint().to_vector(true);
+			var p2 = player.getMidpoint().to_vector(true);
+			trace(p1, p2, p1.distance(p2), MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y));
+			if (
+				(held == null || p1.distance(p2) < held.data.max_range/2) &&
+				MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y)
+			) return true;
+			p1.put();
+			p2.put();
+		}
+		return false;
 	}
 
 }

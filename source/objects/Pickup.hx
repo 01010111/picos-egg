@@ -8,7 +8,7 @@ class Pickup extends GameObject {
 	public var data:PickupData;
 	
 	public function new(x:Float, y:Float, data:PickupData) {
-		super(x, y, { solid: false, tags: ['pickup'] });
+		super(x, y, { solid: false, tags: ['pickup', data.type.string().toLowerCase()] });
 		loadGraphic(Images.pickups__png, true, 32, 32);
 		animation.frameIndex = data.sprite;
 		this.make_and_center_hitbox(2, 2);
@@ -62,8 +62,14 @@ enum LastHeld {
 	NONE;
 }
 
+enum PickupType {
+	THROWABLE;
+	WEAPON;
+}
+
 typedef PickupData = {
 	sprite:Int,
+	type:PickupType,
 	projectiles:Int,
 	power:Float,
 	max_range:Float,

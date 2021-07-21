@@ -35,7 +35,7 @@ class PlayState extends State
 
 	function init_map() {
 		bgColor = 0xFF808080;
-		new MapUtils().init([for (y in 0...512) [ for (x in 0...512) 0 ]],[1]);
+		new MapUtils().init([for (y in 0...32) [ for (x in 0...64) 0 ]],[1]);
 	}
 
 	function init_logic() {
@@ -54,13 +54,14 @@ class PlayState extends State
 	}
 
 	function init_objects() {
+		#if debug add(MapUtils.i.debug_tiles); #end
 		add(new Dolly(FlxG.width/2, FlxG.height/2));
 		add(new Selection());
 		add(objects);
 		new Actor(32, 32, { solid: true, tags: ['player'], health: 10, move_amt: 32, spriteset: 5.get_random().floor()});
 		new Actor(64, 64, { solid: true, tags: ['player'], health: 10, move_amt: 32, spriteset: 5.get_random().floor()});
 		new Actor(224, 64, { solid: true, tags: ['enemy'], health: 10, move_amt: 32, spriteset: 14 });
-		new Pickup(128, 128, data[SHOTGUN]);
+		new Pickup(320, 64, data[SHOTGUN]);
 	}
 
 	override function update(e:Float) {
