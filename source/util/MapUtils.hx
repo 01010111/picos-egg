@@ -1,5 +1,7 @@
 package util;
 
+import openfl.events.KeyboardEvent;
+import openfl.events.Event;
 import zero.utilities.IntPoint;
 import flixel.util.FlxColor;
 import flixel.FlxSprite;
@@ -33,8 +35,6 @@ class MapUtils {
 				heatmap.last().push(0);
 			}
 		}
-		for (i in 0...9) map[i][8] = 1;
-		for (i in 2...9) map[8][i] = 1;
 		#if debug
 		make_debug_tiles();
 		#end
@@ -47,16 +47,18 @@ class MapUtils {
 			var tile = new FlxSprite(i * TILESIZE, j * TILESIZE);
 			tile.makeGraphic(TILESIZE, TILESIZE, 0x00FFFFFF);
 			tile.drawRect(4, 4, TILESIZE - 8, TILESIZE - 8);
-			tile.alpha = 0.5;
+			tile.alpha = 1;
 			debug_tiles.add(tile);
 		}
+		debug_tiles.visible = false;
+		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, (e) -> if (e.charCode == 13) debug_tiles.visible = !debug_tiles.visible);
 	}
 
 	function draw_debug() {
 		#if debug
 		for (j in 0...heatmap.length) for (i in 0...heatmap[j].length) {
 			var tile = debug_tiles.members[j * heatmap[j].length + i];
-			(cast tile:FlxSprite).color = FlxColor.interpolate(0xFFFF004D, 0xFF001060, heatmap[j][i].map(0, 32, 0, 1));
+			(cast tile:FlxSprite).color = FlxColor.interpolate(0xFFFF004D, 0xFF001060, heatmap[j][i].map(0, 15, 0, 1));
 		}
 		#end
 	}
@@ -140,6 +142,7 @@ class MapUtils {
 			[j, i + 1],
 		];
 		dirs.sort((a,b) -> heatmap[a[0]][a[1]] < heatmap[b[0]][b[1]] ? -1 : 1);
+		if (dirs[0][0] == j && dirs[0][1] == i) return null;
 		var res = switch d {
 			case ASCENDING: dirs.shift();
 			case DESCENDING: dirs.pop();

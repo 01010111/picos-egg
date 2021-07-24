@@ -1,0 +1,197 @@
+{
+  "name": "Pico's Egg",
+  "ogmoVersion": "3.4.0",
+  "levelPaths": ["."],
+  "backgroundColor": "#282c34ff",
+  "gridColor": "#3c4049cc",
+  "anglesRadians": true,
+  "directoryDepth": 5,
+  "layerGridDefaultSize": {"x": 15, "y": 15},
+  "levelDefaultSize": {"x": 320, "y": 240},
+  "levelMinSize": {"x": 360, "y": 240},
+  "levelMaxSize": {"x": 4096, "y": 4096},
+  "levelValues": [],
+  "defaultExportMode": ".json",
+  "compactExport": false,
+  "externalScript": "",
+  "playCommand": "",
+  "entityTags": [],
+  "layers": [
+    {
+      "definition": "entity",
+      "name": "entities",
+      "gridSize": {"x": 15, "y": 15},
+      "exportID": "97058143",
+      "requiredTags": [],
+      "excludedTags": []
+    },
+    {
+      "definition": "grid",
+      "name": "walls",
+      "gridSize": {"x": 15, "y": 15},
+      "exportID": "96984382",
+      "arrayMode": 1,
+      "legend": {"0": "#00000000", "1": "#ffc778ff"}
+    },
+    {
+      "definition": "tile",
+      "name": "tiles",
+      "gridSize": {"x": 15, "y": 15},
+      "exportID": "96980900",
+      "exportMode": 0,
+      "arrayMode": 1,
+      "defaultTileset": "tiles"
+    }
+  ],
+  "entities": [
+    {
+      "exportID": "97005884",
+      "name": "player",
+      "limit": -1,
+      "size": {"x": 9, "y": 9},
+      "origin": {"x": 0, "y": 0},
+      "originAnchored": true,
+      "shape": {
+        "label": "Rectangle",
+        "points": [
+          {"x": -1, "y": -1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": 1}
+        ]
+      },
+      "color": "#ff7a00ff",
+      "tileX": false,
+      "tileY": false,
+      "tileSize": {"x": 16, "y": 16},
+      "resizeableX": false,
+      "resizeableY": false,
+      "rotatable": false,
+      "rotationDegrees": 360,
+      "canFlipX": false,
+      "canFlipY": false,
+      "canSetColor": false,
+      "hasNodes": false,
+      "nodeLimit": 0,
+      "nodeDisplay": 0,
+      "nodeGhost": true,
+      "tags": [],
+      "values": [
+        {
+          "name": "name",
+          "definition": "Enum",
+          "display": 1,
+          "choices": ["PICO", "DARNELL", "NENE", "CASSANDRA", "BOYFRIEND"],
+          "defaults": 0
+        },
+        {
+          "name": "held",
+          "definition": "Enum",
+          "display": 2,
+          "choices": ["NONE", "EGG", "DODGEBALL", "GRENADE", "PISTOL", "SHOTGUN", "RIFLE", "BAT", "SKULL"],
+          "defaults": 0
+        }
+      ]
+    },
+    {
+      "exportID": "97022129",
+      "name": "enemy",
+      "limit": -1,
+      "size": {"x": 9, "y": 9},
+      "origin": {"x": 0, "y": 0},
+      "originAnchored": true,
+      "shape": {
+        "label": "Rectangle",
+        "points": [
+          {"x": -1, "y": -1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": 1}
+        ]
+      },
+      "color": "#515664ff",
+      "tileX": false,
+      "tileY": false,
+      "tileSize": {"x": 16, "y": 16},
+      "resizeableX": false,
+      "resizeableY": false,
+      "rotatable": false,
+      "rotationDegrees": 360,
+      "canFlipX": false,
+      "canFlipY": false,
+      "canSetColor": false,
+      "hasNodes": false,
+      "nodeLimit": 0,
+      "nodeDisplay": 0,
+      "nodeGhost": true,
+      "tags": [],
+      "values": [
+        {
+          "name": "name",
+          "definition": "Enum",
+          "display": 1,
+          "choices": ["TANKMAN1", "TANKMAN2"],
+          "defaults": 0
+        },
+        {
+          "name": "held",
+          "definition": "Enum",
+          "display": 2,
+          "choices": ["NONE", "EGG", "DODGEBALL", "GRENADE", "PISTOL", "SHOTGUN", "RIFLE", "BAT", "SKULL"],
+          "defaults": 0
+        }
+      ]
+    },
+    {
+      "exportID": "97021086",
+      "name": "pickup",
+      "limit": -1,
+      "size": {"x": 4, "y": 4},
+      "origin": {"x": 0, "y": 0},
+      "originAnchored": true,
+      "shape": {
+        "label": "Rectangle",
+        "points": [
+          {"x": -1, "y": -1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": 1}
+        ]
+      },
+      "color": "#009fffff",
+      "tileX": false,
+      "tileY": false,
+      "tileSize": {"x": 16, "y": 16},
+      "resizeableX": false,
+      "resizeableY": false,
+      "rotatable": false,
+      "rotationDegrees": 360,
+      "canFlipX": false,
+      "canFlipY": false,
+      "canSetColor": false,
+      "hasNodes": false,
+      "nodeLimit": 0,
+      "nodeDisplay": 0,
+      "nodeGhost": true,
+      "tags": [],
+      "values": [
+        {
+          "name": "type",
+          "definition": "Enum",
+          "display": 1,
+          "choices": ["EGG", "DODGEBALL", "GRENADE", "PISTOL", "SHOTGUN", "RIFLE", "BAT", "SKULL"],
+          "defaults": 0
+        }
+      ]
+    }
+  ],
+  "tilesets": [
+    {"label": "tiles", "path": "../images/tiles.png", "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAAXNSR0IArs4c6QAAADNQTFRFAAAAojJORD9BGx4pNidHZGR8UWy/y+j3nqSnADMICEo8VGoAUlJMc2FQd3hb4It5AAAAewcWPAAAABF0Uk5TAP////////////////////8QFUChAAAA8UlEQVRoge3V2w6DIBBFUV/qi8D/f24VMToDaBTEXvaKSYMFDpNOStdJrjqTft0dBdtFcmyPmfjVuWBbMXh8Pjc47K7G8bHU1uuy68FiO1V/ep4IMfKbZXZZsD+8KlUnRxWXBbtMcKxCsIuC3a3Burts9AOLo8iThT+QOPk4WNeYHu5UvJ2zbtsgWA6/ILjUckmcC/Zda7xp0TTcDEJTmzNsWKqTBjFrUPQxS7jd8z0W3Pc/WPHYd3Pj+Y92Fe8WfGfFBLdsrrml5u5qGPxYxf8XrC6xbHBfOfgl5W+n2sEAAAAAAAAAAAAAAAAAAADAJW/zxnEvnbCuMgAAAABJRU5ErkJggg==", "tileWidth": 15, "tileHeight": 15, "tileSeparationX": 0, "tileSeparationY": 0, "tileMarginX": 0, "tileMarginY": 0}
+  ]
+}

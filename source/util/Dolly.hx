@@ -26,13 +26,17 @@ class Dolly extends FlxObject {
 		var yy = shift ? mp.y : 0;
 		mp.put();
 		for (target in targets) {
+			if (target == null) {
+				trace(targets.length);
+				continue;
+			}
 			xx += target.x;
 			yy += target.y;
 		}
 		xx /= targets.length + (shift ? 1 : 0);
 		yy /= targets.length + (shift ? 1 : 0);
-		x += (xx - x) * 0.2;
-		y += (yy - y) * 0.2;
+		x += (xx - x) * 0.1;
+		y += (yy - y) * 0.1;
 	}
 
 }

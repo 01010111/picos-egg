@@ -11,6 +11,7 @@ enum PickupName {
 	SHOTGUN;
 	RIFLE;
 	BAT;
+	SKULL;
 }
 
 var data:Map<PickupName, PickupData> = [
@@ -58,8 +59,8 @@ var data:Map<PickupName, PickupData> = [
 		sprite: 4,
 		ammo: 8,
 		timing: 0,
-		falloff: Ease.quadOut,
-		max_range: 128,
+		falloff: Ease.sineOut,
+		max_range: 224,
 		power: 2,
 		projectiles: 8,
 		type: WEAPON
@@ -68,8 +69,8 @@ var data:Map<PickupName, PickupData> = [
 		sprite: 5,
 		ammo: 10,
 		timing: 0.1,
-		falloff: Ease.quintIn,
-		max_range: 384,
+		falloff: Ease.quadIn,
+		max_range: 224,
 		power: 3,
 		projectiles: 4,
 		type: WEAPON
@@ -83,5 +84,26 @@ var data:Map<PickupName, PickupData> = [
 		power: 4,
 		projectiles: 0,
 		type: THROWABLE,
-	}
+	},
+	SKULL => {
+		sprite: 7,
+		ammo: 0,
+		timing: 0,
+		falloff: Ease.linear,
+		max_range: 0,
+		power: 5,
+		projectiles: 0,
+		type: THROWABLE,
+	},
+];
+
+var string_data:Map<String, PickupData> = [
+	'EGG' => data[EGG],
+	'DODGEBALL' => data[DODGEBALL],
+	'GRENADE' => data[GRENADE],
+	'PISTOL' => data[PISTOL],
+	'SHOTGUN' => data[SHOTGUN],
+	'RIFLE' => data[RIFLE],
+	'BAT' => data[BAT],
+	'SKULL' => data[SKULL],
 ];

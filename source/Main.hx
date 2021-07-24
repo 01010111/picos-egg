@@ -17,13 +17,13 @@ using zero.utilities.EventBus;
 
 class Main extends Sprite
 {
-	static var WIDTH:Int = 512;
-	static var HEIGHT:Int = 288;
+	static var WIDTH:Int = 360;
+	static var HEIGHT:Int = 240;
 
 	public function new()
 	{
 		super();
-		addChild(new FlxGame(WIDTH, HEIGHT, states.PlayState, 2, 60, 60, true));
+		addChild(new FlxGame(WIDTH, HEIGHT, states.PlayState, 3, 60, 60, true));
 		preupdate.listen('preupdate');
 		#if PIXEL_PERFECT
 		FlxG.game.setFilters([new ShaderFilter(new FlxShader())]);

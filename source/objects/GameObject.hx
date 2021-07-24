@@ -1,32 +1,62 @@
 package objects;
 
-import zero.flixel.utilities.FlxTags;
 import util.MapUtils;
 import flixel.FlxSprite;
 
 class GameObject extends FlxSprite {
 	
-	public var sy(get, never):Float;
-	function get_sy() return y + height/2;
+	public var mx(get, set):Float;
+	function get_mx() return x + width/2;
+	function set_mx(v:Float) {
+		x = v - width/2;
+		return v;
+	}
 
-	public function new(x:Float, y:Float, options:GameObjectOptions) {
+	public var my(get, set):Float;
+	function get_my() return y + height/2;
+	function set_my(v:Float) {
+		y = v - height/2;
+		return v;
+	}
+
+	public function new(x:Float, y:Float, data:GameObjectData) {
 		super(x, y);
-		if (options.solid) MapUtils.i.set_passable(x, y, true);
-		if (options.solid && !options.tags.contains('solid')) options.tags.push('solid');
-		if (!options.tags.contains('gameobject')) options.tags.push('gameobject');
-		this.add_tags(options.tags);
+		if (data.solid) set_passable(false);
+		if (data.solid && !data.tags.contains('solid')) data.tags.push('solid');
+		if (!data.tags.contains('gameobject')) data.tags.push('gameobject');
+		this.add_tags(data.tags);
 		PLAYSTATE.overlap.add(this);
 		PLAYSTATE.objects.add(this);
+		health = data.health;
+		PLAYSTATE.shadows.fire({ position: getMidpoint(), data: {parent:this} });
+	}
+	
+	override function hurt(Damage:Float) {
+		var p = getMidpoint().add(15.get_random(-15), 5.get_random(-20));
+		PLAYSTATE.damage.fire({
+			position: p,
+			util_int: Damage.clamp(0, 16).floor()
+		});
+		PLAYSTATE.impacts.fire({position:p});
+		p.put();
+		if (Damage <= 0) return;
+		super.hurt(Damage);
 	}
 
 	override function kill() {
-		if (this.has_tag('solid')) MapUtils.i.set_passable(x, y, true);
+		if (this.has_tag('solid')) set_passable(true);
+		PLAYSTATE.blasts.fire({ position: getMidpoint() });
 		super.kill();
+	}
+
+	function set_passable(pass:Bool) {
+		MapUtils.i.set_passable(mx, my, pass);
 	}
 
 }
 
-typedef GameObjectOptions = {
+typedef GameObjectData = {
 	solid:Bool,
 	tags:Array<String>,
+	health:Int,
 }
