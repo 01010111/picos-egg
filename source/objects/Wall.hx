@@ -36,14 +36,31 @@ class Wall extends GameObject {
 		x = x.snap_to_grid(TILESIZE);
 		y = y.snap_to_grid(TILESIZE);
 		id = [i,j];
-		super(x, y, {
+		var data = {
 			solid: true,
 			tags: ['wall'],
 			health: 25,
+		};
+		if (i == 0 || j == 0 || i == map[0].length - 1 || j == map.length - 1) data.health = 9999;
+		super(0,0, data);
+		loadGraphic(Images.walls__png, true, 17, 27);
+		//this.make_anchored_hitbox(15, 15);
+		offset.set(0, 5);
+		this.add_body({
+			shape: {
+				type: RECT,
+				width: 15,
+				height: 15
+			},
+			x: x + 7.5,
+			y: y + 7.5,
+			mass: 0,
 		});
-		loadGraphic(Images.walls__png, true, 15, 25);
-		this.make_anchored_hitbox(15, 15);
+		set_solid_info(data);
 		immovable = true;
+		this.add_to_group(PLAYSTATE.solids);
+		this.add_to_group(PLAYSTATE.walls);
+		this.add_to_group(PLAYSTATE.gameobjects);
 	}
 
 	override function kill() {

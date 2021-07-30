@@ -1,5 +1,6 @@
 package objects;
 
+import echo.Echo;
 import util.GameUtils;
 import zero.utilities.Ease;
 import flixel.FlxSprite;
@@ -37,12 +38,14 @@ class Actor extends GameObject {
 			'turn'.dispatch();
 			has_gone = true;
 		}
-		immovable = !v;
-		wait = !v;
-		target = null;
-		velocity.set();
 		Dolly.i.reset_targets();
 		Dolly.i.add_target(this);
+		Dolly.i.add_target(this);
+		immovable = !v;
+		body.mass = v ? 1 : 0;
+		wait = !v;
+		target = null;
+		vel.set(0, 0);
 		Selection.i.hide();
 		if (!this.has_tag('player')) begin_ai();
 		if (v) trace([for (a in GameUtils.active) (cast a:Actor).has_gone]);
@@ -62,7 +65,7 @@ class Actor extends GameObject {
 
 	function set_ai_state(v:AIState) {
 		trace('ai', v);
-		velocity.set();
+		vel.set(0, 0);
 		switch v {
 			case CHASE:
 				MapUtils.i.object_heatmap('player');
@@ -91,15 +94,28 @@ class Actor extends GameObject {
 
 	public function new(x:Float, y:Float, data:ActorData) {
 		if (!data.tags.contains('actor')) data.tags.push('actor');
-		super(x, y, data);
+		super(0, 0, data);
 		this.data = data;
 		loadGraphic(Images.actors__png, true, 32, 32);
 		var ao = data.spriteset * 9;
 		animation.add('idle', [for (i in 0...64) (i - 61).max(0).floor() + ao], 30.get_random(20).floor());
 		animation.add('walk', [3 + ao, 3 + ao, 4 + ao, 5 + ao, 6 + ao, 6 + ao, 7 + ao, 8 + ao], 24);
-		setSize(9, 9);
-		offset.set(12, 20);
+		//setSize(9, 9);
+		//offset.set(12, 20);
+		offset.set(0.5, 8);
+		this.add_body({
+			shape: {
+				type: CIRCLE,
+				radius: 4
+			},
+			x: x + 4.5,
+			y: y + 4.5,
+		});
+		set_solid_info(data);
 		turn = false;
+		this.add_to_group(PLAYSTATE.solids);
+		this.add_to_group(PLAYSTATE.actors);
+		this.add_to_group(PLAYSTATE.gameobjects);
 	}
 
 	override function update(elapsed:Float) {
@@ -112,7 +128,7 @@ class Actor extends GameObject {
 	}
 
 	function animations() {
-		if (velocity.vector_length() == 0) animation.play('idle');
+		if (vel.length == 0) animation.play('idle');
 		else animation.play('walk');
 	}
 
@@ -128,7 +144,7 @@ class Actor extends GameObject {
 	}
 	
 	function player_movement() {
-		velocity.set();
+		vel.set(0, 0);
 		if (wait) return;
 		if (ap <= 0) return;
 		var v = Vec2.get(0, 0);
@@ -137,7 +153,7 @@ class Actor extends GameObject {
 		if (FlxG.keys.pressed.A) v.x -= 1;
 		if (FlxG.keys.pressed.D) v.x += 1;
 		if (v.length > 0) v.length = ACTOR_SPEED;
-		velocity.set(v.x, v.y);
+		vel.set(v.x, v.y);
 		v.put();	
 	}
 
@@ -199,7 +215,8 @@ class Actor extends GameObject {
 		if (held == null) return false;
 		if (held.data.ammo <= 0) return false;
 		if (target == null) return false;
-		if (!MapUtils.i.can_see(mx, my, target.mx, target.my)) return false;
+		//if (!MapUtils.i.can_see(mx, my, target.mx, target.my, [body, target.body])) return false;
+		if (!MapUtils.i.can_see_obj(body, target.body, PLAYSTATE.solids.get_group_bodies(), [body, target.body])) return false;
 		wait = true;
 		ap--;
 		held.data.ammo--;
@@ -218,6 +235,7 @@ class Actor extends GameObject {
 			}
 			Timer.get(0.25 + 0.1 * held.data.projectiles, () -> {
 				wait = false;
+				if (!target.alive) target.body.set_position(-128, -128);
 				if (GameUtils.phase == ENEMY) {
 					GameUtils.switch_character();
 					return;
@@ -234,7 +252,8 @@ class Actor extends GameObject {
 		if (target == null) return 0.0;
 		var p1 = getMidpoint().to_vector(true);
 		var p2 = target.getMidpoint().to_vector(true);
-		if (!MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y)) return 0;
+		//if (!MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y, [body, target.get_body()])) return 0;
+		if (!MapUtils.i.can_see_obj(body, target.get_body(), PLAYSTATE.solids.get_group_bodies(), [body, target.get_body()])) return 0;
 		var chance = held.data.falloff(p1.distance(p2)/held.data.max_range).map(0, 1, 1, 0.1);
 		p1.put();
 		p2.put();
@@ -253,8 +272,8 @@ class Actor extends GameObject {
 		d.length = THROW_SPEED;
 
 		held.state = FLYING;
-		held.reset(mx, my);
-		held.velocity.set(d.x, d.y);
+		held.body.set_position(mx, my);
+		held.vel.set(d.x, d.y);
 		held = null;
 
 		v.put();
@@ -282,7 +301,7 @@ class Actor extends GameObject {
 		if (held != null) return;
 		if (p.state == FLYING && p.last_parent == this) return;
 		var is_player = this.has_tag('player');
-		p.velocity.set();
+		p.vel.set(0, 0);
 		p.state = HELD;
 		p.last_parent = this;
 		p.last_held = is_player ? PLAYER : ENEMY;
@@ -292,6 +311,7 @@ class Actor extends GameObject {
 
 	function pickup_hit(p:Pickup) {
 		FlxObject.separate(this, p);
+		
 		hurt(p.data.power);
 	}
 
@@ -320,7 +340,7 @@ class Actor extends GameObject {
 	}
 
 	function ai_move() {
-		velocity.set();
+		vel.set(0, 0);
 		if (ap <= 0) {
 			trace('out of AP, attacking');	
 			ai_state = ATTACK;
@@ -333,7 +353,7 @@ class Actor extends GameObject {
 		var p = Vec2.get(mx, my);
 		var d = t - p;
 		d.length = ACTOR_SPEED;
-		velocity.set(d.x, d.y);
+		vel.set(d.x, d.y);
 		t.put();
 		p.put();
 		d.put();
@@ -361,7 +381,7 @@ class Actor extends GameObject {
 			var p1 = getMidpoint().to_vector(true);
 			var p2 = player.getMidpoint().to_vector(true);
 			var in_range = p1.distance(p2) < held.data.max_range/2;
-			var can_see = MapUtils.i.can_see(p1.x, p1.y, p2.x, p2.y);
+			var can_see = MapUtils.i.can_see_obj(body, player.get_body(), PLAYSTATE.solids.get_group_bodies(), [body, player.get_body()]);
 			if (can_see) target = cast player;
 			if (in_range && can_see) {
 				trace('player in range: ', (cast player:Actor).data.name, 'attacking...');
@@ -417,11 +437,13 @@ class Actor extends GameObject {
 	}
 
 	override function kill() {
+		if (current == this) GameUtils.switch_character();
+		GameUtils.active.remove(this);
 		if (held != null) {
 			var d = Vec2.get(DEAD_TOSS_SPEED);
 			d.angle = 360.get_random();
 			held.state = FREE;
-			held.velocity.set(d.x, d.y);
+			held.vel.set(d.x, d.y);
 			held = null;
 			d.put();
 		}

@@ -1,5 +1,7 @@
 package states;
 
+import zero.utilities.Color;
+import flixel.group.FlxGroup;
 import particles.Decal;
 import objects.FireSource;
 import zero.utilities.Timer;
@@ -51,13 +53,21 @@ class PlayState extends State
 	public var fire:ParticleEmitter = new ParticleEmitter(() -> new Fire());
 	public var decals:ParticleEmitter = new ParticleEmitter(() -> new Decal());
 
+	public var solids:FlxGroup = new FlxGroup();
+	public var pickups:FlxGroup = new FlxGroup();
+	public var actors:FlxGroup = new FlxGroup();
+	public var walls:FlxGroup = new FlxGroup();
+	public var gameobjects:FlxGroup = new FlxGroup();
+
 	override function create() {
 		FlxTags.clear_tags();
 		GameUtils.init();
 		ogmo = FlxOgmoUtils.get_ogmo_package(Data.picos_egg__ogmo, Data.test__json);
+		FlxEcho.init({ width: ogmo.level.width, height: ogmo.level.height });
 		init_map();
 		init_logic();
 		init_objects();
+		init_ui();
 		GameUtils.new_phase();
 	}
 
@@ -67,6 +77,27 @@ class PlayState extends State
 
 	function init_logic() {
 		add(overlap = new OverlapUtil());
+		FlxEcho.listen(solids, solids, { separate: true });
+		FlxEcho.listen(pickups, walls, {
+			separate: true,
+			enter: (a,b,c) -> {
+				var pickup:Pickup = cast a.object;
+				if (pickup.state == FLYING) pickup.state = FREE;
+				if (pickup.is_egg && pickup.state != HELD) game_over();
+			}
+		});
+		FlxEcho.listen(pickups, actors, {
+			separate: true,
+			condition: (a,b,c) -> {
+				var pickup:Pickup = a.object.is(Pickup) ? cast a.object : cast b.object;
+				if (pickup.state == HELD) return false;
+				var actor:Actor = b.object.is(Actor) ? cast b.object : cast a.object;
+				actor.pick_up_collide(pickup);
+				if (pickup.state != FLYING) return false;
+				return true;
+			},
+		});
+		return;
 		overlap.listen({
 			tag1: 'solid',
 			tag2: 'solid',
@@ -118,9 +149,15 @@ class PlayState extends State
 		}
 	}
 
+	function init_ui() {
+		UI.removeChildren();
+		UI.addChild(new ui.PhaseIndicator());
+	}
+
 	override function update(e:Float) {
 		super.update(e);
 		objects.sort((d, o1, o2) -> o1.my < o2.my ? -1 : 1);
+		FlxG.camera.pixelPerfectRender = true;
 		FlxG.camera.scroll.x = FlxG.camera.scroll.x.round();
 		FlxG.camera.scroll.y = FlxG.camera.scroll.y.round();
 	}

@@ -1,5 +1,6 @@
 // Statics
 import states.PlayState.instance as PLAYSTATE;
+import ui.UILayer.i as UI;
 
 // Utilities
 import util.AssetPaths;
@@ -21,6 +22,7 @@ using zero.flixel.extensions.FlxTilemapExt;
 using zero.flixel.utilities.FlxTags;
 using zero.utilities.EventBus;
 using echo.FlxEcho;
+using zero.openfl.extensions.Tools;
 
 #if OGMO
 using zero.utilities.OgmoUtils;

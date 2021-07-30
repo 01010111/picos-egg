@@ -1,5 +1,8 @@
 package;
 
+import zero.utilities.Tween;
+import zero.utilities.Color;
+import ui.UILayer;
 import openfl.display.Sprite;
 import flixel.FlxGame;
 import zero.utilities.ECS;
@@ -23,7 +26,9 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
+		var ui_layer = new UILayer();
 		addChild(new FlxGame(WIDTH, HEIGHT, states.PlayState, 3, 60, 60, true));
+		addChild(UI);
 		preupdate.listen('preupdate');
 		#if PIXEL_PERFECT
 		FlxG.game.setFilters([new ShaderFilter(new FlxShader())]);
@@ -38,6 +43,7 @@ class Main extends Sprite
 	function preupdate(?dt:Dynamic) {
 		ECS.tick(dt);
 		Timer.update(dt);
+		Tween.update(dt);
 		SyncedSin.update(dt);
 		FamiController.update(dt);
 	}

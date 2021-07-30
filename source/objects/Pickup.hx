@@ -12,18 +12,29 @@ class Pickup extends GameObject {
 	var angle_target:Float = 0;
 	
 	public function new(x:Float, y:Float, data:PickupData) {
-		super(x, y, {
+		super(0, 0, {
 			solid: false,
 			tags: ['pickup', data.type.string().toLowerCase()],
 			health: 999
 		});
 		loadGraphic(Images.pickups__png, true, 32, 32);
 		animation.frameIndex = data.sprite;
-		this.make_and_center_hitbox(4, 4);
+		//this.make_and_center_hitbox(4, 4);
 		this.data = data;
-		state = FREE;
-		elasticity = 0.5;
 		is_egg = data.sprite == 0;
+		this.add_body({
+			shape: {
+				type: CIRCLE,
+				radius: 2
+			},
+			x: x + 2,
+			y: y + 2,
+		});
+		this.add_to_group(PLAYSTATE.pickups);
+		this.add_to_group(PLAYSTATE.gameobjects);
+		body.elasticity = 0.85;
+		state = FREE;
+		body.drag.set(PICKUP_DRAG, PICKUP_DRAG);
 	}
 
 	override function get_my():Float {
@@ -38,9 +49,10 @@ class Pickup extends GameObject {
 	}
 
 	function set_state(s:PickupState) {
+		trace('pickup state', s);
 		switch s {
-			case FREE:drag.set(PICKUP_DRAG, PICKUP_DRAG);
-			case FLYING:drag.set();
+			case FREE://body.drag.set(PICKUP_DRAG, PICKUP_DRAG);
+			case FLYING://body.drag.set(0, 0);
 			case HELD:
 		}
 		return state = s;
@@ -53,19 +65,19 @@ class Pickup extends GameObject {
 		if (non_rotatables.contains(data.sprite)) angle_target = 0;
 		switch state {
 			case FREE:
-				angle += velocity.x/10;
+				body.rotation += vel.x/10;
 			case FLYING: 
 				if (wasTouching > 0) state = FREE;
-				angle += velocity.x/10;
+				body.rotation += vel.x/10;
 			case HELD:
 				angle_target = angle_target.translate_to_nearest_angle(angle);
-				angle += (angle_target - angle) * 0.25;
+				body.rotation += (angle_target - body.rotation) * 0.25;
 		}
-		offset.x += (15 - offset.x) * 0.1;
+		offset.x += (0 - offset.x) * 0.1;
 	}
 
 	public function fire() {
-		offset.x = 20;
+		offset.x = 5;
 	}
 
 }

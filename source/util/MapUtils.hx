@@ -1,5 +1,8 @@
 package util;
 
+import echo.Body;
+import echo.Line;
+import echo.Echo;
 import openfl.events.KeyboardEvent;
 import openfl.events.Event;
 import zero.utilities.IntPoint;
@@ -85,7 +88,48 @@ class MapUtils {
 		return AStar.los([x1, y1], [x2, y2], map, [0]);
 	}
 
-	public function can_see(sx:Float, sy:Float, ex:Float, ey:Float) {
+	public function can_see_obj(b1:Body, b2:Body, obstacles:Array<Body>, filter:Array<Body>) {
+		var can_draw = FlxEcho.debug_drawer != null;
+		var b2_bounds = b2.bounds();
+		var line = Line.get(b1.x, b1.y, b2.x, b2.y);
+		if (can_draw) FlxEcho.debug_drawer.draw_line(line.x, line.y, line.dx, line.dy, 0xFF004D);
+		var obs = [for (o in obstacles) if (!filter.contains(o)) o];
+		var linecast = Echo.linecast(line, obs);
+		if (linecast == null) return true;
+		if (can_draw) FlxEcho.debug_drawer.draw_circle(linecast.closest.hit.x, linecast.closest.hit.y, 2, 0xFF004D);
+		line.end.set(b2.x, b2_bounds.min_y);
+		if (can_draw) FlxEcho.debug_drawer.draw_line(line.x, line.y, line.dx, line.dy, 0xFF004D);
+		linecast = Echo.linecast(line, obs);
+		if (linecast == null) return true;
+		if (can_draw) FlxEcho.debug_drawer.draw_circle(linecast.closest.hit.x, linecast.closest.hit.y, 2, 0xFF004D);
+		line.end.set(b2.x, b2_bounds.max_y);
+		if (can_draw) FlxEcho.debug_drawer.draw_line(line.x, line.y, line.dx, line.dy, 0xFF004D);
+		linecast = Echo.linecast(line, obs);
+		if (linecast == null) return true;
+		if (can_draw) FlxEcho.debug_drawer.draw_circle(linecast.closest.hit.x, linecast.closest.hit.y, 2, 0xFF004D);
+		line.end.set(b2_bounds.min_x, b2.y);
+		if (can_draw) FlxEcho.debug_drawer.draw_line(line.x, line.y, line.dx, line.dy, 0xFF004D);
+		linecast = Echo.linecast(line, obs);
+		if (linecast == null) return true;
+		if (can_draw) FlxEcho.debug_drawer.draw_circle(linecast.closest.hit.x, linecast.closest.hit.y, 2, 0xFF004D);
+		line.end.set(b2_bounds.max_x, b2.y);
+		if (can_draw) FlxEcho.debug_drawer.draw_line(line.x, line.y, line.dx, line.dy, 0xFF004D);
+		linecast = Echo.linecast(line, obs);
+		if (linecast == null) return true;
+		return false;
+	}
+
+	public function can_see(sx:Float, sy:Float, ex:Float, ey:Float, filter:Array<Body>) {
+		var line = Line.get(sx, sy, ex, ey);
+		if (FlxEcho.debug_drawer != null) FlxEcho.debug_drawer.draw_line(line.x, line.y, line.dx, line.dy, 0xFF004D);
+		var obstacles = [for (o in PLAYSTATE.solids.get_group_bodies()) if (!filter.contains(o)) o];
+		var linecast = Echo.linecast(line, obstacles);
+		if (linecast != null) {
+			if (FlxEcho.debug_drawer != null) FlxEcho.debug_drawer.draw_circle(linecast.closest.hit.x, linecast.closest.hit.y, 2, 0xFF004D);
+			trace(linecast);
+		}
+		else trace('ok!');
+		return linecast == null;
 		var out = line_of_sight(
 			(sx/TILESIZE).floor(),
 			(sy/TILESIZE).floor(),

@@ -1,5 +1,6 @@
 package util;
 
+import ui.PhaseIndicator;
 import zero.utilities.Timer;
 import objects.FireSource;
 import flixel.FlxObject;
@@ -34,13 +35,21 @@ class GameUtils {
 		phase = phases.shift();
 		phases.push(phase);
 		trace(phase, 'phase');
-		var actors = FlxTags.get_objects(phase.string().toLowerCase(), true);
-		active = actors;
-		for (actor in FlxTags.get_objects('actor')) (cast actor:Actor).available = false;
-		for (actor in actors) (cast actor:Actor).available = true;
-		switch_character();
-		trace([for (actor in actors) (cast actor:Actor).data.name]);
-		FireSource.propogate();
+		Dolly.i.reset_targets();
+		PhaseIndicator.i.play(phase);
+		Timer.get(2, () -> {
+			var actors = FlxTags.get_objects(phase.string().toLowerCase(), true);
+			if (actors.length == 0) {
+				Timer.get(1, () -> new_phase());
+				return;
+			}
+			active = actors;
+			for (actor in FlxTags.get_objects('actor', true)) (cast actor:Actor).available = false;
+			for (actor in actors) (cast actor:Actor).available = true;
+			switch_character();
+			trace([for (actor in actors) (cast actor:Actor).data.name]);
+			FireSource.propogate();
+		});
 	}
 
 	public static function check_active() {
